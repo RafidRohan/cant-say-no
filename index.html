@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will you marry me?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;700&display=swap"
+        rel="stylesheet">
+    <!-- Confetti Library for the celebration -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            overflow: hidden;
+            /* Prevent scrolling when button moves */
+            touch-action: none;
+            /* Prevent zooming on double taps */
+        }
+
+        .font-handwriting {
+            font-family: 'Pacifico', cursive;
+        }
+
+        /* Smooth animation for the No button movement */
+        #noBtn {
+            transition: all 0.2s ease-out;
+            outline: none;
+            /* Hide focus ring if they somehow manage to focus it */
+            -webkit-tap-highlight-color: transparent;
+            /* Remove blue highlight on mobile tap */
+        }
+
+        /* Heart beat animation for the Yes button */
+        @keyframes heartbeat {
+            0% {
+                transform: scale(1);
+            }
+
+            25% {
+                transform: scale(1.05);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+
+            60% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .heartbeat {
+            animation: heartbeat 2s infinite;
+        }
+
+        /* Floating hearts background animation */
+        .bg-heart {
+            position: absolute;
+            color: rgba(255, 182, 193, 0.4);
+            animation: float 6s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(110vh) scale(0.5);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-10vh) scale(1.5);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-pink-50 h-screen w-screen flex flex-col items-center justify-center relative select-none">
+
+    <!-- Background Decoration -->
+    <div id="background-hearts"></div>
+
+    <!-- Main Card -->
+    <!-- Changed w-full mx-4 to w-[90%] to ensure consistent spacing on mobile -->
+    <div id="card"
+        class="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl text-center max-w-md w-[90%] transition-all duration-500 transform border-4 border-pink-200 z-10 relative">
+
+        <!-- Image Container -->
+        <div class="mb-6 relative h-52 flex items-center justify-center">
+
+            <!-- SVG Fallback for Main Bear (Hidden by default) -->
+            <svg id="mainBearSVG" width="200" height="200" viewBox="0 0 200 200" class="hidden">
+                <circle cx="100" cy="110" r="90" fill="#F0F8FF" />
+                <g>
+                    <!-- Bear Ears -->
+                    <circle cx="40" cy="50" r="25" fill="#8B4513" />
+                    <circle cx="160" cy="50" r="25" fill="#8B4513" />
+                    <!-- Bear Head -->
+                    <ellipse cx="100" cy="100" rx="80" ry="70" fill="#A0522D" />
+                    <!-- Eyes -->
+                    <circle cx="70" cy="90" r="8" fill="#333" />
+                    <circle cx="130" cy="90" r="8" fill="#333" />
+                    <!-- Snout -->
+                    <ellipse cx="100" cy="115" rx="25" ry="15" fill="#FFF8DC" />
+                    <circle cx="100" cy="110" r="6" fill="#333" />
+                    <!-- Mouth -->
+                    <path d="M90 125 Q100 135 110 125" fill="none" stroke="#333" stroke-width="3"
+                        stroke-linecap="round" />
+                </g>
+            </svg>
+
+            <!-- Main Bear Image (Interactive) -->
+            <img id="mainImage" src="assets/pretty-please.gif" alt="Cute bear"
+                class="h-full object-contain rounded-lg drop-shadow-sm transition-all duration-300 hover:scale-105"
+                onerror="this.style.display='none'; document.getElementById('mainBearSVG').classList.remove('hidden');">
+        </div>
+
+        <!-- Text Content -->
+        <h1 id="question" class="font-handwriting text-4xl md:text-5xl text-pink-600 mb-8 leading-tight drop-shadow-sm">
+            Will you marry me?
+        </h1>
+
+        <!-- Buttons Container -->
+        <div id="btnContainer" class="flex flex-col gap-4">
+            <div class="flex flex-row items-center justify-center gap-4 relative">
+                <!-- Yes Button -->
+                <!-- Added touch handlers for mobile 'hover' effect -->
+                <button id="yesBtn" onclick="acceptProposal()" onmouseenter="handleYesHover()"
+                    onmouseleave="handleReset()" ontouchstart="handleYesHover()" ontouchend="handleReset()"
+                    ontouchcancel="handleReset()"
+                    class="heartbeat w-32 h-12 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 z-20 flex items-center justify-center">
+                    Yes 💖
+                </button>
+
+                <!-- No Button Placeholder -->
+                <div class="w-32 h-12 relative">
+                    <!-- Changed ontouchstart to use handleNoTouch to prevent clicks -->
+                    <button id="noBtn" onmouseover="moveButton()" ontouchstart="handleNoTouch(event)"
+                        onfocus="moveButton()" onclick="handleNoClick()" tabindex="-1"
+                        class="w-32 h-12 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold rounded-full shadow-md z-20 flex items-center justify-center absolute top-0 left-0">
+                        No
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden success message -->
+        <div id="successMessage"
+            class="hidden opacity-0 transition-opacity duration-1000 mt-4 flex flex-col items-center">
+            <p class="text-xl text-pink-500 font-bold mb-4">I knew you would say yes! <br>🥰💍💑</p>
+        </div>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('noBtn');
+        const yesBtn = document.getElementById('yesBtn');
+        const question = document.getElementById('question');
+        const mainImage = document.getElementById('mainImage');
+        const btnContainer = document.getElementById('btnContainer');
+        const card = document.getElementById('card');
+
+        let hasMoved = false;
+        let isSuccess = false;
+        let interactionTimeout;
+
+        // --- UPDATED IMAGE SOURCES ---
+
+        // Main Bear Images (The Proposer)
+        const bearImages = {
+            default: "assets/pretty-please.gif", // Grogu Waiting
+            happy: "assets/dancing.gif", // Happy/Dancing
+            sad: "assets/teddy-bear.gif", // Crying
+            success: "assets/bear-kiss.gif" // Kissing
+        };
+
+        // Preload images
+        Object.values(bearImages).forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+
+        // Combined State Manager
+        function setMood(state) {
+            if (isSuccess) return;
+
+            // Clear any auto-reset timers
+            clearTimeout(interactionTimeout);
+
+            // Update Main Bear
+            if (mainImage.src !== bearImages[state]) {
+                mainImage.src = bearImages[state];
+            }
+
+            // If 'sad' (chasing No), auto-reset after 1.5s if they stop chasing
+            if (state === 'sad') {
+                interactionTimeout = setTimeout(() => {
+                    if (!isSuccess) setMood('default');
+                }, 1500);
+            }
+        }
+
+        // Handlers
+        function handleYesHover() {
+            setMood('happy');
+        }
+
+        function handleReset() {
+            setMood('default');
+        }
+
+        // New function to handle touch on No button specifically
+        function handleNoTouch(e) {
+            e.preventDefault(); // Prevents the 'click' event from generating
+            moveButton();
+        }
+
+        function handleNoClick() {
+            // Stop interactions
+            isSuccess = true;
+
+            // Change image to the sad one (Milk and Mocha crying)
+            mainImage.src = "assets/hmph.gif";
+
+            // Change text
+            question.innerText = "You are cruel! 😭";
+
+            // Hide buttons immediately
+            btnContainer.style.display = 'none';
+            noBtn.style.display = 'none';
+        }
+
+        function moveButton() {
+            if (isSuccess) return; // Don't move if game over
+
+            // 1. Trigger Sad/Pleading Mood
+            setMood('sad');
+
+            // 2. Logic to move the button safely
+            if (!hasMoved) {
+                // Get current bounding rect to prevent visual jump
+                const rect = noBtn.getBoundingClientRect();
+
+                // Temporarily disable transition for the DOM move
+                noBtn.style.transition = "none";
+
+                document.body.appendChild(noBtn); // Move to body to escape card transform
+                noBtn.style.position = 'fixed';
+                noBtn.style.zIndex = '100';
+
+                // Set initial position to exactly where it was
+                noBtn.style.left = rect.left + 'px';
+                noBtn.style.top = rect.top + 'px';
+
+                // Force reflow to apply new position immediately
+                void noBtn.offsetWidth;
+
+                // Re-enable transition for smooth movement to new random spot
+                noBtn.style.transition = "all 0.2s ease-out";
+
+                hasMoved = true;
+            }
+
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            const btnWidth = noBtn.offsetWidth;
+            const btnHeight = noBtn.offsetHeight;
+            const padding = 20;
+
+            // Calculate safe boundaries
+            const minX = padding;
+            const maxX = windowWidth - btnWidth - padding;
+            const minY = padding;
+            const maxY = windowHeight - btnHeight - padding;
+
+            const constrainedMaxX = Math.max(minX, maxX);
+            const constrainedMaxY = Math.max(minY, maxY);
+
+            const randomX = Math.random() * (constrainedMaxX - minX) + minX;
+            const randomY = Math.random() * (constrainedMaxY - minY) + minY;
+
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+
+            const randomRot = Math.floor(Math.random() * 20) - 10;
+            noBtn.style.transform = `rotate(${randomRot}deg)`;
+        }
+
+        function acceptProposal() {
+            isSuccess = true;
+            launchConfetti();
+
+            // Set success images
+            mainImage.src = bearImages.success;
+
+            question.innerText = "YAY! I love you! ❤️";
+
+            // Hide Buttons
+            btnContainer.style.opacity = '0';
+            noBtn.style.opacity = '0';
+            noBtn.style.pointerEvents = 'none';
+
+            setTimeout(() => {
+                btnContainer.style.display = 'none';
+                noBtn.style.display = 'none';
+
+                const successMsg = document.getElementById('successMessage');
+                successMsg.classList.remove('hidden');
+                void successMsg.offsetWidth;
+                successMsg.style.opacity = '1';
+            }, 500);
+
+            // Confetti loop
+            const duration = 3000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+            const randomInRange = (min, max) => Math.random() * (max - min) + min;
+
+            const interval = setInterval(function () {
+                const timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+
+                const particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+
+        function launchConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+
+        function createHearts() {
+            const container = document.getElementById('background-hearts');
+            const heartCount = 15;
+            for (let i = 0; i < heartCount; i++) {
+                const heart = document.createElement('div');
+                heart.classList.add('bg-heart');
+                heart.innerHTML = '❤';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDuration = Math.random() * 3 + 3 + 's';
+                heart.style.fontSize = Math.random() * 20 + 20 + 'px';
+                container.appendChild(heart);
+            }
+        }
+        createHearts();
+    </script>
+</body>
+
+</html>
