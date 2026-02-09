@@ -2,6 +2,8 @@
 
 A cute interactive proposal page with animated bears and confetti!
 
+**[View Demo](https://tinyurl.com/mu6yj3bu)**
+
 ## Features
 - Interactive "No" button that runs away
 - Cute animated GIFs for different states (Happy, Sad, Success)
