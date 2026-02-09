@@ -9,7 +9,7 @@ A cute interactive proposal page with animated bears and confetti!
 - Cute animated GIFs for different states (Happy, Sad, Success)
 - Confetti celebration on "Yes"
 - Mobile responsive design
-- Easter egg if you click manage to click "No"
+- Easter egg if you manage to click "No"
 
 ## Credits
 - GIFs from Tenor
